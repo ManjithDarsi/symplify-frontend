@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Switch } from "@/components/ui/switch";
+
 import * as z from 'zod';
 import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/contexts/AuthContext';
@@ -37,6 +39,7 @@ const EmployeeSettings = () => {
   const { toast } = useToast();
   const [progress, setProgress] = useState(13);
   const { authenticatedFetch } = useAuth();
+  const [isActive, setisActive]=useState(false);
   const navigate = useNavigate();
 
   const form = useForm({
@@ -197,6 +200,14 @@ const EmployeeSettings = () => {
     <Card className="w-full max-w-4xl mx-auto mt-8">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-2xl font-bold">Employee Settings</CardTitle>
+        <div className="flex items-center">
+        <Switch
+          checked={isActive}
+          onCheckedChange={(checked) => setisActive(checked)}
+          disabled={!isEditing}
+        />
+        <h3 className="text-1xl font-bold">   Active</h3>
+        </div>
         <Button onClick={() => setIsEditing(!isEditing)}>
           {isEditing ? "Cancel" : "Update Employee"}
         </Button>
@@ -323,14 +334,14 @@ const EmployeeSettings = () => {
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                   <FormControl>
                     <Checkbox
-                      checked={field.value}
+                      checked={isActive ? field.value : false} 
                       onCheckedChange={field.onChange}
-                      disabled={!isEditing}
+                      disabled={!isEditing  || !isActive}
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>
-                      Is Therapist
+                      Is Therapist Active <span className="mt-4 text-sm text-gray-500"> (You will be able schedule appointments to the Employee)</span>
                     </FormLabel>
                   </div>
                 </FormItem>
@@ -343,34 +354,14 @@ const EmployeeSettings = () => {
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                   <FormControl>
                     <Checkbox
-                      checked={field.value}
+                        checked={isActive ? field.value : false} 
                       onCheckedChange={field.onChange}
-                      disabled={!isEditing}
+                      disabled={!isEditing || !isActive}
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>
-                      Has App Access
-                    </FormLabel>
-                  </div>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="is_active"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled={!isEditing}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>
-                      Is Active
+                      Has App Access <span className="mt-4 text-sm text-gray-500"> (The Employee will be given access to both web and Mobile app)</span>
                     </FormLabel>
                   </div>
                 </FormItem>

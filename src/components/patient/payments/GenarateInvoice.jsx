@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from 'date-fns';
 import { Loader2, ExternalLink, FileDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 // Invoice Dialog
 const InvoiceDialog = ({ isOpen, onClose, onGenerate, invoiceItems, setInvoiceItems, finalAmount, setFinalAmount, sellables, isLoading }) => {
@@ -31,6 +33,7 @@ const InvoiceDialog = ({ isOpen, onClose, onGenerate, invoiceItems, setInvoiceIt
     }
   };
 
+
   const handleItemChange = (index, field, value) => {
     const updatedItems = [...invoiceItems];
     updatedItems[index][field] = value;
@@ -48,6 +51,8 @@ const InvoiceDialog = ({ isOpen, onClose, onGenerate, invoiceItems, setInvoiceIt
     const total = items.reduce((sum, item) => sum + item.net, 0);
     setFinalAmount(total);
   };
+
+  
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -185,7 +190,7 @@ const InvoiceStatusDialog = ({ isOpen, onClose, onUpdateStatus, isLoading }) => 
 };
 
 // Invoice Details Dialog
-const InvoiceDetailsDialog = ({ invoice, isOpen, onClose, onUpdateStatus, isLoading }) => {
+const InvoiceDetailsDialog = ({ invoice, fetchName, isOpen, onClose, onUpdateStatus, isLoading, clinicid, patientid }) => {
   const handleViewInvoiceHtml = () => {
     if (invoice && invoice.html) {
       window.open(invoice.html, '_blank');
@@ -193,10 +198,18 @@ const InvoiceDetailsDialog = ({ invoice, isOpen, onClose, onUpdateStatus, isLoad
   };
   console.log(invoice)
 
+
   const handleDownloadInvoicePdf = () => {
     if (invoice && invoice.pdf) {
       window.open(invoice.pdf, '_blank');
     }
+  };
+
+  const navigate = useNavigate();
+
+  const handlePatientClick = () => {
+    navigate(`/clinic/${clinicid}/patients/${patientid}`); 
+    onClose(); 
   };
 
   return (
@@ -208,6 +221,7 @@ const InvoiceDetailsDialog = ({ invoice, isOpen, onClose, onUpdateStatus, isLoad
         {invoice && (
           <div className="space-y-4">
             <p><strong>Invoice Number:</strong> {invoice.number}</p>
+            <p><strong>Patient Name:</strong> <span onClick={handlePatientClick} className="text-blue-600 hover:underline cursor-pointer">{fetchName.first_name} {fetchName.last_name}</span></p>
             <p><strong>Date:</strong> {format(new Date(invoice.date), 'EEEE dd MMMM yyyy')}</p>
             <p><strong>Status:</strong> {invoice.status === 'd' ? 'Draft' : invoice.status === 'c' ? 'Confirmed' : 'Cancelled'}</p>
             <p><strong>Gross Amount:</strong> {invoice.gross_amount}</p>

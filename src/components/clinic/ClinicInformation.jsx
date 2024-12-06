@@ -21,8 +21,11 @@ const clinicInformationSchema = z.object({
   pincode: z.string().regex(/^\d+$/, "Invalid pincode"),
   phone1: z.string().regex(/^\d+$/, "Invalid phone number"),
   email1: z.string().email("Invalid email address"),
-  type: z.enum(["ph", "other"]), // Add more types as needed
+  type: z.enum(["ph","mu","ot","oh","se","st","ab","ay","da","py","cd"]), 
   prefix_invoice: z.string().min(1, "Invoice prefix is required"),
+  prefix_patient_id: z.string().min(1, {
+    message: "Prefix Patient ID is required.",
+  }),
 });
 
 const ClinicInformation = () => {
@@ -31,8 +34,10 @@ const ClinicInformation = () => {
   const { authenticatedFetch } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [presentImg, setPresentImg ] = useState(null)
-
+  const [presentImg, setPresentImg] = useState(null);
+  const [isPrefixPatientEditable, setIsPrefixPatientEditable] = useState(false); // For showing button/input
+  const [submitting, setSubmitting] = useState(false); // Track form submission status
+  const [type,settype]=useState('');
 
   const form = useForm({
     resolver: zodResolver(clinicInformationSchema),
@@ -47,6 +52,7 @@ const ClinicInformation = () => {
       email1: '',
       type: 'ph',
       prefix_invoice: '',
+      prefix_patient_id: null,
     },
   });
 
@@ -71,10 +77,18 @@ const ClinicInformation = () => {
         pincode: data.pincode ?? '',
         phone1: data.phone1 ?? '',
         email1: data.email1 ?? '',
-        type: data.type ?? 'ph',
+        type: data.type,
         prefix_invoice: data.prefix_invoice ?? '',
+        prefix_patient_id: data.prefix_patient_id ?? null,
       });
 
+      if (!data.prefix_patient_id) {
+        setIsPrefixPatientEditable(false);
+      }
+
+      settype(data.type);
+      // Check if prefix_patient_id is null to manage the button state
+      setIsPrefixPatientEditable(!data.prefix_patient_id);
     } catch (error) {
       toast({
         title: "Error",
@@ -87,13 +101,21 @@ const ClinicInformation = () => {
   };
 
   const onSubmit = async (values) => {
+
+    if (submitting) return; // Prevent multiple submissions
+    setSubmitting(true);
+
+    const submitData = {
+      ...values,
+      address_line_2: values.address_line_2 ? values.address_line_2 : null,
+    };
     try {
       const response = await authenticatedFetch(`${import.meta.env.VITE_BASE_URL}/api/emp/clinic/${clinic_id}/`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(values),
+        body: JSON.stringify(submitData),
       });
 
       if (!response.ok) throw new Error('Failed to update clinic information');
@@ -108,6 +130,8 @@ const ClinicInformation = () => {
         description: error.message || "Failed to update clinic information. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setSubmitting(false); // Re-enable form submission after completion
     }
   };
 
@@ -138,7 +162,6 @@ const ClinicInformation = () => {
       event.target.value = null; // Reset the input
     }
   };
-
   const uploadLogo = async () => {
     if (!selectedFile) {
       toast({ title: "Error", description: "Please select a file to upload.", variant: "destructive" });
@@ -188,9 +211,14 @@ const ClinicInformation = () => {
 
   }
 
+  const handleEditPrefixPatientId = () => {
+    setIsPrefixPatientEditable(true);
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
+
 
   return (
     <Card className="w-full max-w-4xl mx-auto mt-8">
@@ -198,6 +226,7 @@ const ClinicInformation = () => {
         <CardTitle className="text-2xl font-bold">Clinic Information</CardTitle>
       </CardHeader>
       <CardContent>
+
         <p className=' font-semibold'>
           Invoice Logo
         </p>
@@ -219,7 +248,6 @@ const ClinicInformation = () => {
             Update Logo
           </Button>
         </div>
-      
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -324,32 +352,92 @@ const ClinicInformation = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Clinic Type</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value ?? 'ph'}>
+                  <Select onValueChange={(value) => { 
+                      field.onChange(value); 
+                      settype(value); 
+                  }} value={field.value || type}> 
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue value="ph" placeholder="Select clinic type" />
+                        <SelectValue placeholder="Select clinic type" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="ph">PH</SelectItem>
+                      <SelectItem value="ph">Physiotherapy</SelectItem>
+                      <SelectItem value="mu">Multi</SelectItem>
+                      <SelectItem value="ab">ABA therapy</SelectItem>
+                      <SelectItem value="se">Special Education</SelectItem>
+                      <SelectItem value="cd">Child devlopement</SelectItem>
+                      <SelectItem value="ay">Ayurvedic Therapy</SelectItem>
+                      <SelectItem value="da">Deaddiction Center</SelectItem>
+                      <SelectItem value="py">Psychiology</SelectItem>
+                      <SelectItem value="st">Speech Therapy</SelectItem>
+                      <SelectItem value="ot">occupational therapy</SelectItem>
+                      <SelectItem value="oh">Others</SelectItem>
                     </SelectContent>
                   </Select>
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="prefix_invoice"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Invoice Prefix</FormLabel>
+                    <div className="bg-gray-100 border border-gray-300 rounded p-4 mb-4">
+                      <p className="text-sm text-gray-700">
+                        Once the Invoice Prefix is set, each invoice generated in your clinic will have this prefix appended to it. 
+                      </p>
+                      <p className="text-sm text-gray-700">
+                      Example: If your Invoice Prefix is "INV", your invoices will be labeled as INV_0001, INV_0002, and so on.
+                      </p>
+                    </div>
                   <FormControl>
                     <Input {...field} value={field.value ?? ''} />
                   </FormControl>
                 </FormItem>
               )}
             />
-            <Button type="submit" className="mt-6">Update Clinic Information</Button>
+            <FormField
+              control={form.control}
+              name="prefix_patient_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Prefix Patient ID</FormLabel>
+                    <div className="bg-gray-100 border border-gray-300 rounded p-4 mb-4">
+                      <p className="text-sm text-gray-700">
+                        Once the Patient ID Prefix is set, each patient in your clinic will be assigned a unique serial number under this prefix. Please note, this prefix is permanent and cannot be modified after being set.
+                      </p>
+                      <p className="text-sm text-gray-700">
+                        Example: If your Patient ID Prefix is "ABC", your patients will have IDs like ABC_0001, ABC_0002, and so on.
+                      </p>
+                      Patient ID Prefix is set. If you need to change it, please contact support.
+                    </div>
+                    {!isPrefixPatientEditable && field.value ? (
+                      <FormControl>
+                        <Input {...field} value={field.value ?? ''} readOnly placeholder="Prefix Patient ID set and cannot be changed" />
+                      </FormControl>
+                    ) : (
+                      <>
+                        {isPrefixPatientEditable ? (
+                          <FormControl>
+                            <Input {...field} value={field.value ?? ''} placeholder="Enter Prefix Patient ID" />
+                          </FormControl>
+                        ) : (
+                          <Button type="button" onClick={handleEditPrefixPatientId}>
+                            Add Prefix Patient ID
+                          </Button>
+                        )}
+                      </>
+                    )}
+                </FormItem>
+              )}
+            />
+            <Button type="submit" className="mt-6" disabled={submitting}>
+              {submitting ? "Submitting..." : "Update Clinic Information"}
+            </Button>
+
           </form>
         </Form>
       </CardContent>

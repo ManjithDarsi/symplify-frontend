@@ -36,6 +36,7 @@ export function DatePicker({ value, onChange }) {
 
   const handleDateChange = (newDate) => {
     if (newDate instanceof Date && !isNaN(newDate)) {
+      console.log(`componnet called ${newDate}`);
       setDate(newDate);
       onChange(newDate);
     }

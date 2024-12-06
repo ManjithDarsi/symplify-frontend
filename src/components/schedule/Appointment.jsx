@@ -1,6 +1,6 @@
 // AppointmentPopup.jsx
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle,DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -13,6 +13,7 @@ import { DatePicker } from '../ui/datepicker';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useNavigate, useParams } from 'react-router-dom';
 import ClockPicker from '../ui/clock';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AppointmentPopup = ({
   event,
@@ -38,13 +39,13 @@ const AppointmentPopup = ({
     markPenalty: false,
     removeSessionBalance: false,
   });
+  const { authenticatedFetch } = useAuth();
   const { clinic_id } = useParams();
   const navigate = useNavigate();
   const [deleteScope, setDeleteScope] = useState('0');
   const [cancelScope, setCancelScope] = useState('T');
   const [tillDate, setTillDate] = useState(null);
   const { toast } = useToast();
-
   const [isCopyDialogOpen, setIsCopyDialogOpen] = useState(false);
   const [copyDetails, setCopyDetails] = useState({
     startDate: new Date(event.start),
@@ -61,7 +62,106 @@ const AppointmentPopup = ({
   const [editDetails, setEditDetails] = useState(false);
   const [isRevokeOpen, setIsRevokeOpen] = useState(false);
   const [reason, setReason] = useState('')
+    const fetchWithTokenHandling = async (url, options = {}) => {
+    try {
+      const response = await authenticatedFetch(url, options);
+      if (response.status === 204) {
+        return response;
+      }
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'An error occurred');
+      }
+      return response.json();
+    } catch (error) {
+      if (error.message === 'Token is blacklisted' || error.message === 'Token is invalid or expired') {
+        navigate('/login');
+        throw new Error('Session expired. Please log in again.');
+      }
+      throw error;
+    }
+  };
+  const [paymentadd, setPaymentAdd] = useState(false);
+  const handleclickpayment=()=>{
+    fetchPaymentChannels();
+    setIsPaymentDialogOpen(true);
+    setPaymentAdd(false);
+  }
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [newPayment, setNewPayment] = useState({
+    amount_paid: '',
+    date: new Date(),
+    channel: '',
+  });
+  const [paymentChannels,setPaymentChannels]=useState([]);
+   const fetchPaymentChannels = async () => {
+    try {
+      console.log("fetchpayementscalled");
+      const data = await fetchWithTokenHandling(`${import.meta.env.VITE_BASE_URL}/api/emp/clinic/${clinic_id}/payment/channel/`);
+      setPaymentChannels(data);
+    } catch (error) {
+      console.error("Failed to fetch payment channels:", error);
+      setPaymentChannels([]);
+    }
+  };
 
+  // Function to handle adding payment
+  const handleAddPayment = async (e) => {
+    e.preventDefault(); // Prevent default form submission
+    setPaymentAdd(true); // Set loading state
+  try{
+  console.log('Original newPayment date:', newPayment.date);
+  
+      // Ensure we're working with a Date object for the payment date
+      const selectedDate = new Date(newPayment.date);
+  
+      // Convert the date to UTC (to avoid timezone issues)
+      const utcDate = new Date(Date.UTC(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        selectedDate.getDate()
+      ));
+  
+      // Format the UTC date to YYYY-MM-DD
+      let formattedDate
+      const currentMonth = new Date().getMonth()
+      const selectedMonth = selectedDate.getMonth()
+      let currentDay = new Date().getDay()
+      const selectedDay = selectedDate.getDay()
+      if(currentMonth === selectedMonth && currentDay === selectedDay){
+        formattedDate = utcDate.toISOString().split('T')[0];
+      } else {
+        formattedDate = addDays(utcDate, 1).toISOString().split('T')[0];
+      }
+  
+      // Prepare the payment data with the corrected date format
+      const paymentData = {
+        amount_paid: newPayment.amount_paid,
+        amount_refunded: newPayment.amount_refunded || '0',
+        date: formattedDate, // Corrected UTC date
+        channel: newPayment.channel
+      };
+  
+      console.log("Final payment data to be sent:", paymentData);
+    // Example of posting data to an API
+    const response = await fetchWithTokenHandling(`${import.meta.env.VITE_BASE_URL}/api/emp/clinic/${clinic_id}/patient/${event.patientId}/payment/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(paymentData),
+      });
+    setPaymentAdd(false); // Reset loading state
+    setIsPaymentDialogOpen(false); // Close the dialog
+    setNewPayment({ amount_paid: '', date: new Date(), channel: '' }); // Reset form
+    toast({ title: "Success", description: "Payment added successfully" });
+  }catch (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+    finally{
+        setPaymentAdd(false); 
+    }
+  };
   useEffect(() => {
     setIsSheetOpen(true);
     setVisitDetails({
@@ -250,9 +350,61 @@ const AppointmentPopup = ({
             >
               View Patient Details
             </Button>
-            <Button className="w-full mb-2" variant="outline">
+            <Button className="w-full mb-2" variant="outline" onClick={handleclickpayment}>
               Record New Payment
             </Button>
+            <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+        <DialogContent className="max-w-2xl w-full max-h-[100vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add New Payment</DialogTitle>
+          </DialogHeader>
+          
+          <form onSubmit={handleAddPayment}>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="amount_paid">Amount Paid</Label>
+                <Input
+                  id="amount_paid"
+                  type="number"
+                  value={newPayment.amount_paid}
+                  onChange={(e) => setNewPayment({...newPayment, amount_paid: e.target.value})}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="date">Payment Date</Label>
+                <DatePicker
+                  id="date"
+                  selected={newPayment.date}
+                  onChange={(date) => setNewPayment({...newPayment, date: date})}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="channel">Payment Channel</Label>
+                <Select onValueChange={(value) => setNewPayment({...newPayment, channel: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select payment channel" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {paymentChannels.map(channel => (
+                      <SelectItem key={channel.id} value={channel.id}>
+                        {channel.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <br />
+            <DialogFooter>
+              <Button type="submit" disabled={paymentadd}>
+                {paymentadd ? "Adding Payment..." : "Add Payment"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
             <Button className="w-full" variant="outline">
               Call ({event.phoneNumber || '+919182664777'})
             </Button>

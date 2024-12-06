@@ -50,7 +50,6 @@ const UpdatePatient = () => {
   const { authenticatedFetch } = useAuth();
   const [therapists, setTherapists] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false); 
-  const [primary, setPrimary] = useState("")
 
   const form = useForm({
     resolver: zodResolver(patientSchema),
@@ -76,9 +75,6 @@ const UpdatePatient = () => {
  }, []);
  const fetchPatient = async () => {
   try {
-    const response = await authenticatedFetch(`${import.meta.env.VITE_BASE_URL}/api/emp/clinic/${clinic_id}/employee/${PatientData.therapist_primary}/`)
-    const primary = await response.json()
-    setPrimary(primary.first_name +" "+ primary.last_name)
     form.reset({
       ...PatientData,
       country_code: PatientData.mobile?.slice(0, 3) || "+91",
@@ -362,7 +358,7 @@ const fetchTherapists = async () => {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={primary} />
+                            <SelectValue placeholder="Select doctor" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>

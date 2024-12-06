@@ -149,16 +149,16 @@ function App() {
                 <PatientSchedule />
               </ProtectedRoute>
             } />
+            <Route path="/clinic/:clinic_id/patient/:patient_id/update" element={
+              <ProtectedRoute>
+                <Navbar />
+                <UpdatePatient />
+              </ProtectedRoute>
+            } />
             <Route path="/clinic/:clinic_id/patients/new" element={
               <ProtectedRoute>
                 <Navbar />
                 <NewPatient />
-              </ProtectedRoute>
-            } />
-            <Route path="/clinic/:clinic_id/patients/:patient_id/update" element={
-              <ProtectedRoute>
-                <Navbar />
-                <UpdatePatient />
               </ProtectedRoute>
             } />
             <Route path="/clinic/:clinic_id/profile" element={
