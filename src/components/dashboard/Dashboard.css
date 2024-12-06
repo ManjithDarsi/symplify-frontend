@@ -1,0 +1,50 @@
+.dashboard {
+    padding: 20px;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+}
+
+.header h1 {
+    flex: 1;
+}
+
+.header select {
+    margin: 0 10px;
+}
+
+.appointments {
+    margin: 20px 0;
+}
+
+.no-appointments {
+    background-color: #e0e0e0;
+    padding: 10px;
+}
+
+.upcoming-appointments, .schedule-appointment, .summary {
+    margin: 20px 0;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+}
+
+.categories {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+.category {
+    text-align: center;
+}
+
+.category img {
+    width: 100px;
+    height: 100px;
+}

@@ -1,0 +1,282 @@
+/* Schedule.css */
+
+.big-calendar {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .rbc-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .rbc-toolbar button {
+    /* background-color: #4285f4; */
+    /* color: white; */
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .rbc-toolbar button:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .rbc-event {
+    background-color: #4285f4;
+    border: none;
+    border-radius: 4px;
+    padding: 2px 6px;
+    color: white;
+    font-size: 0.875rem;
+    height: 10%
+  }
+
+  .rbc-day-slot .rbc-event, .rbc-day-slot .rbc-background-event {
+    flex-direction: row;
+    height: 10%;
+  }
+  
+  .rbc-event:hover {
+    background-color: #357ae8;
+  }
+  
+  .rbc-time-view {
+    border-radius: 8px;
+  }
+  
+  .rbc-time-header {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .rbc-time-content {
+    border-top: none;
+  }
+  
+  .rbc-today {
+    background-color: #e3f2fd;
+  }
+  
+  .rbc-day-slot .rbc-time-slot {
+    border-top: 1px solid #e0e0e0;
+  }
+  
+  .rbc-time-header-cell {
+    font-weight: bold;
+  }
+  
+  .rbc-timeslot-group {
+    min-height: 60px;
+  }
+  
+  .rbc-current-time-indicator {
+    background-color: #d32f2f;
+  }
+  
+  .appointment-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+  }
+  
+  .appointment-popup h2 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+  }
+  
+  .appointment-popup button {
+    background-color: #4285f4;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .appointment-popup button:hover {
+    background-color: #357ae8;
+  }
+  
+
+  .big-calendar {
+    font-family: Arial, sans-serif;
+  }
+  
+  button.pill {
+    border: none;
+    outline: none;
+    cursor: pointer;
+  }
+  
+  button.pill span {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+    font-size: 16px;
+  }
+  
+  button.pill span:before {
+    content: "✓";
+  }
+  
+  .booking-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+  
+  .booking-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .booking-modal {
+    background-color: white;
+    padding: 1.25rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 32rem;
+    max-width: 90%;
+    transform: scale(0.9);
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+  
+  .booking-modal.active {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  .rbc-toolbar button {
+    color: #373a3c;
+    display: inline-block;
+    margin: 0;
+    text-align: center;
+    vertical-align: middle;
+    background: none;
+    background-image: none;
+    border: 1px solid #ccc;
+    padding: .375rem 1rem;
+    border-radius: 4px;
+    line-height: normal;
+    white-space: nowrap;
+  }
+  
+  .rbc-toolbar button:active,
+  .rbc-toolbar button.rbc-active {
+    background-image: none;
+    box-shadow: inset 0 3px 5px rgba(0,0,0,.125);
+    background-color: #e6e6e6;
+    border-color: #adadad;
+  }
+  
+  .rbc-toolbar button:hover {
+    color: #373a3c;
+    background-color: #e6e6e6;
+    border-color: #adadad;
+  }
+  
+  .rbc-toolbar button:focus {
+    color: #373a3c;
+    background-color: #e6e6e6;
+    border-color: #8c8c8c;
+  }
+  
+  .rbc-btn-group {
+    display: inline-block;
+    white-space: nowrap;
+  }
+  
+  .rbc-btn-group > button:first-child:not(:last-child) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+  
+  .rbc-btn-group > button:last-child:not(:first-child) {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+  
+  .rbc-rtl .rbc-btn-group > button:first-child:not(:last-child) {
+    border-radius: 0 4px 4px 0;
+  }
+  
+  .rbc-rtl .rbc-btn-group > button:last-child:not(:first-child) {
+    border-radius: 4px 0 0 4px;
+  }
+  
+  .rbc-btn-group > button:not(:first-child):not(:last-child) {
+    border-radius: 0;
+  }
+  
+  .rbc-btn-group button + button {
+    margin-left: -1px;
+  }
+  
+  .rbc-rtl .rbc-btn-group button + button {
+    margin-left: 0;
+    margin-right: -1px;
+  }
+  
+  .rbc-btn-group + .rbc-btn-group,
+  .rbc-btn-group + button {
+    margin-left: 10px;
+  }
+
+  .rbc-time-header-content {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .resource-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 5px;
+  }
+  
+  .resource-header .avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    border: 3px solid white; /* Placeholder color */
+    margin-bottom: 5px;
+  }
+  
+  .rbc-calendar {
+    min-height: 500px;
+  }
+
+  @media (max-width: 1024px) {
+    .lg\:translate-x-full {
+      transform: translateX(0) !important;
+    }
+  }
