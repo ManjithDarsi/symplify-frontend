@@ -20,6 +20,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { PlusCircle, Search, EyeOff, Eye, X } from "lucide-react";
 import { Card } from '../ui/card';
 import { useToast } from "@/components/ui/use-toast";
+import {ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, ToastClose, ToastAction } from "@/components/ui/toast";
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { parseISO, addMinutes, addDays, addMonths } from 'date-fns';
@@ -63,6 +64,7 @@ export default function Schedule() {
   });
   const [selectedDoctor, setSelectedDoctor] = useState('');
   const [isRescheduling, setIsRescheduling] = useState(false);
+  const [isPreview, setIsPreview] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState('');
   const [showCanceled, setShowCanceled] = useState(false);
   const [calendarStartTime, setCalendarStartTime] = useState(new Date(0, 0, 0, 9, 0));
@@ -445,6 +447,7 @@ export default function Schedule() {
     setIsRescheduling(true);
     setIsVisitDialogOpen(true);
   };
+
   
   // Then, create a separate function to handle the actual rescheduling
   const submitReschedule = async () => {
@@ -523,7 +526,7 @@ export default function Schedule() {
           attended: false,
         });
         setIsRescheduling(false);
-        setIsVisitDialogOpen(false);
+        setIsPreview(false);
         toast({
           title: "Success",
           description: "Appointment rescheduled successfully.",
@@ -857,12 +860,31 @@ export default function Schedule() {
         customDuration: '',
         therapist: '',
       });
+      // toast({
+      //   title: "Success",
+      //   description: "Appointment booked successfully.",
+      //   variant: "default",
+      // });
+      setIsPreview(false);
       toast({
-        title: "Success",
-        description: "Appointment booked successfully.",
-        variant: "default",
+        title: "Appointment booked successfully!!",
+        description: "Want to extend your Appointment?",
+        action: (
+          <ToastAction altText="Add appointment" onClick={() => {
+            const now = new Date();
+            setNewVisit(prev => ({
+              ...prev,
+              patient: newVisit.patient,
+              therapist: newVisit.therapist,
+              sellable: newVisit.sellable,
+              date: now,
+              time: format(now, 'HH:mm'),
+            }));
+            handleDialogOpenChange(true);
+          }} >Add appointment</ToastAction>
+        ),
       });
-      setIsVisitDialogOpen(false);
+      
     } catch (error) {
       toast({
         title: "Error",
@@ -870,6 +892,10 @@ export default function Schedule() {
         variant: "destructive",
       });
     }
+  };
+
+  const handlePreviewDialog= (open) => {
+    setIsPreview(open); // Update the preview dialog state
   };
 
   const handleDialogOpenChange = (open) => {
@@ -892,6 +918,11 @@ export default function Schedule() {
         therapistName: '',
       });
     }
+  };
+
+  const handlePreview = (open) => {
+    setIsPreview(open);
+    setIsVisitDialogOpen(false);
   };
 
   const handleDoctorFilterChange = (doctorId) => {
@@ -1829,9 +1860,35 @@ export default function Schedule() {
               />
             )}
           </div>
-          <Button onClick={isRescheduling ? submitReschedule : addVisit} className="w-full">
-            {isRescheduling ? 'Reschedule Appointment' : 'Book Appointment'}
+          <Button onClick={handlePreview} className="w-full">
+            Add Appointment
           </Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* <Button onClick={isRescheduling ? submitReschedule : addVisit} className="w-full">
+            {isRescheduling ? 'Reschedule Appointment' : 'Book Appointment'}
+          </Button> */}
+
+      <Dialog open={isPreview} onOpenChange={handlePreviewDialog}>
+        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
+        <Label>Patient:</Label>
+        <Label>Therapist</Label>
+        <Label>Sellable</Label>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+        <Label>Starts On</Label>
+        <Label>Time</Label>
+        </div>
+        <Label>Weekdays</Label>
+        <Label>Ends On</Label>
+        <Label>OR</Label>
+        <Label>Duration</Label>
+        <div className="flex justify-between items-center gap-4 w-full" style={{ width: '100%' }}>
+          <Button className="w-full">Edit Appointment</Button>
+          <Button onClick={isRescheduling ? submitReschedule : addVisit} className="w-full">
+            {isRescheduling ? 'Confirm Reschedule Appointment' : 'Confirm Appointment'}
+          </Button>
+        </div>
         </DialogContent>
       </Dialog>
     </Card>
