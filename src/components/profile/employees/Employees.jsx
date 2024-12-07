@@ -116,6 +116,7 @@ const Employees = () => {
         variant: "destructive",
       });
     }
+    console.log(employees)
   };
 
   const fetchRoles = async () => {
@@ -297,7 +298,7 @@ const Employees = () => {
               </FormControl>
               <div className="space-y-1 leading-none">
                 <FormLabel>
-                  Is Therapist
+                Is Therapist  <span className="mt-4 text-sm text-gray-500"> (You will be able schedule appointments to the Employee)</span>
                 </FormLabel>
               </div>
             </FormItem>
@@ -316,13 +317,13 @@ const Employees = () => {
               </FormControl>
               <div className="space-y-1 leading-none">
                 <FormLabel>
-                  Has App Access
+                  Has App Access  <span className="mt-4 text-sm text-gray-500"> (The Employee will be given access to both web and Mobil)</span>
                 </FormLabel>
               </div>
             </FormItem>
           )}
         />
-        <FormField
+        {/* <FormField
           control={form.control}
           name="is_active"
           render={({ field }) => (
@@ -340,70 +341,125 @@ const Employees = () => {
               </div>
             </FormItem>
           )}
-        />
+        /> */}
         <Button type="submit">Add Employee</Button>
       </form>
     </Form>
   );
 
   return (
-    <Card className="w-full max-w-4xl mx-auto mt-8">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-2xl font-bold">Employees</CardTitle>
+<Card className="w-full max-w-7xl mx-auto mt-8">
+  <CardTitle className="text-2xl font-bold text-center">Employee Management</CardTitle>
+  <br />
+  <div className="flex justify-around mt-4">
+    <div className="text-center">
+      <h2 className="text-lg font-semibold">Total Employees</h2>
+      <p>{employees.length}</p>
+    </div>
+    <div className="text-center">
+      <h2 className="text-lg font-semibold">Active Employees</h2>
+      <p className="text-green-600">
+        {employees.filter((p) => p.is_active).length}
+      </p>
+    </div>
+    <div className="text-center">
+      <h2 className="text-lg font-semibold">Inactive Employees</h2>
+      <p className="text-red-600">
+        {employees.length - employees.filter((p) => p.is_active).length}
+      </p>
+    </div>
+  </div>
+  <br />
+  <CardHeader className="flex items-center justify-between">
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <DialogTrigger asChild>
+        <Button>Add Employee</Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl w-full max-h-[100vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Add New Employee</DialogTitle>
+        </DialogHeader>
+        {renderEmployeeForm()}
+      </DialogContent>
+    </Dialog>
+  </CardHeader>
+  <CardContent>
+    {employees.length === 0 ? (
+      <div className="text-center py-4">
+        <p className="mb-4">No employees found.</p>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button>Add Employee</Button>
+            <Button>Add Your First Employee</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl w-full max-h-[100vh] overflow-y-auto">
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>Add New Employee</DialogTitle>
             </DialogHeader>
             {renderEmployeeForm()}
           </DialogContent>
         </Dialog>
-      </CardHeader>
-      <CardContent>
-        {employees.length === 0 ? (
-          <div className="text-center py-4">
-            <p className="mb-4">No employees found.</p>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>Add Your First Employee</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add New Employee</DialogTitle>
-                </DialogHeader>
-                {renderEmployeeForm()}
-              </DialogContent>
-            </Dialog>
-          </div>
-        ) : (
-          <ul className="space-y-4">
-            {employees.map(employee => (
-              <li 
-                key={employee.id} 
-                className="flex items-center p-4 bg-gray-100 rounded-lg hover:bg-gray-200 cursor-pointer transition-colors duration-200"
-                onClick={() => handleEmployeeClick(employee.id)}
-              >
-                <Avatar className="h-12 w-12 mr-4">
-                  <AvatarImage src={`https://api.dicebear.com/6.x/initials/svg?seed=${employee.first_name} ${employee.last_name}`} />
-                  <AvatarFallback>{employee.first_name} {employee.last_name}</AvatarFallback>
-                </Avatar>
-                <div className='w-full'>
-                  <h3 className="font-semibold">{employee.first_name} {employee.last_name}</h3>
-                  <p className="text-sm text-gray-500">{employee.email}</p>
-                  <p className="text-xs text-gray-400">
-                    {employee.is_therapist ? 'Therapist' : 'Staff'} | 
-                    {employee.is_active ? ' Active' : ' Inactive'}
-                  </p>
-                </div>
-              </li>
+      </div>
+    ) : (
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead>
+            <tr>
+              {["Avatar", "Name", "Email", "Status", "Role", "Actions"].map((header) => (
+                <th
+                  key={header}
+                  className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  {header}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {employees.map((employee) => (
+              <tr key={employee.id} className="hover:bg-gray-100 transition-colors duration-200">
+                <td className="px-4 py-4 whitespace-nowrap">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage
+                      src={`https://api.dicebear.com/6.x/initials/svg?seed=${employee.first_name} ${employee.last_name}`}
+                    />
+                    <AvatarFallback>
+                      {employee.first_name[0]}{employee.last_name[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                </td>
+                <td className="px-4 py-4 whitespace-nowrap">
+                  <div className="text-sm font-medium text-gray-900">
+                    {employee.first_name} {employee.last_name}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-500">{employee.email}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span
+                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      employee.is_therapist ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                    }`}
+                  >
+                    {employee.is_therapist ? "Active" : "Inactive"}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {roles.find((role) => role.id === employee.role)?.name || "Unknown Role"}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-center">
+                  <Button size="sm" onClick={() => handleEmployeeClick(employee.id)}>
+                    View Details
+                  </Button>
+                </td>
+              </tr>
             ))}
-          </ul>
-        )}
-      </CardContent>
-    </Card>
+          </tbody>
+        </table>
+      </div>
+    )}
+  </CardContent>
+</Card>
   );
 };
 

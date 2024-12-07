@@ -20,7 +20,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { PlusCircle, Search, EyeOff, Eye, X } from "lucide-react";
 import { Card } from '../ui/card';
 import { useToast } from "@/components/ui/use-toast";
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { parseISO, addMinutes, addDays, addMonths } from 'date-fns';
 import { DatePicker } from '@/components/ui/datepicker';
@@ -30,6 +30,7 @@ import { CalendarIcon } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from '@/components/ui/progress';
 import ClockPicker from '@/components/ui/clock';
+// import SearchDropdown from '@/components/ui/SearchDropdown';
 
 const locales = {
   'en-US': enUS,
@@ -109,6 +110,7 @@ export default function Schedule() {
   const [isVisible, setIsVisible] = useState(false);
   const [bookedVisits, setBookedVisits] = useState([])
   const [visits, setVisits] = useState([])
+
 
   const filteredTherapists = therapists.filter(therapist => 
     `${therapist.first_name} ${therapist.last_name}`.toLowerCase().includes(doctorSearch.toLowerCase())
@@ -227,7 +229,8 @@ export default function Schedule() {
       const response = await authenticatedFetch(`${import.meta.env.VITE_BASE_URL}/api/emp/clinic/${clinic_id}/patient/`);
       if (!response.ok) throw new Error('Failed to fetch patients');
       const data = await response.json();
-      setPatients(data);
+      const active= data.filter(p => p.is_patient_active);
+      setPatients(active);
     } catch (error) {
       toast({
         title: "Error",
@@ -692,11 +695,11 @@ export default function Schedule() {
   const handleRevoke = async (bookingId, reason) => {
     try {
       const bookedVisitEvent = bookedVisits.find(event => event.booking === bookingId);
-      // console.log(bookedVisitEvent, bookingId, bookedVisits)
       const nonBookedVisit = visits.find(visit => `visit-${visit.id}` === bookingId);
       if (!bookedVisitEvent && !nonBookedVisit) {
         throw new Error('Visit not found');
       }
+  
       const visitEvent = bookedVisitEvent || nonBookedVisit;
       const revokeData = { reason: reason };
   
@@ -708,10 +711,12 @@ export default function Schedule() {
           body: JSON.stringify(revokeData),
         }
       );
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to Revoke visit');
       }
+  
       // Refresh events to include the updated (canceled) visit
       const fetchAllEvents = async () => {
         setLoading(true);
@@ -739,6 +744,7 @@ export default function Schedule() {
       };
   
       await fetchAllEvents();
+  
       toast({
         title: "Success",
         description: "Visit revoked successfully.",
@@ -752,7 +758,7 @@ export default function Schedule() {
         variant: "destructive",
       });
     }
-  }
+  };  
 
   const addVisit = async () => {
     try {
@@ -1126,7 +1132,7 @@ export default function Schedule() {
       );
       const data = await response.json();
       setVisits(data)
-
+  
       // Create a set to track bookings that have been attended
       const attendedBookingIds = new Set();
 
@@ -1163,7 +1169,7 @@ export default function Schedule() {
           setBookedVisits(visitsBooked)
         }
       });
-  
+      console.log(bookedVisits)
       return { formattedVisits, attendedBookingIds };
     } catch (error) {
       console.error('Failed to fetch visits:', error);
@@ -1409,7 +1415,9 @@ export default function Schedule() {
       </div>
     );
   };  
-  
+  const handleaddpayment=()=>{
+       navigate(`clinic/${clinic_id}/patients/${patient_id}`);
+  }
 
   return (
     // className={`mx-auto flex flex-col gap-4 p-4 w-full h-full shadow-xl transition-all duration-500 ease-out ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}
@@ -1490,6 +1498,15 @@ export default function Schedule() {
             >
               {selectedDoctorId === "" && selectedPatientId === "" ? "Apply Filter" : "Clear All Filters" }
             </Toggle>
+            <Toggle 
+              pressed={showCancelled} 
+              onPressedChange={handleCancelledToggle} 
+              className="w-full"
+            >
+                {showCancelled ? "Hide Cancelled" : "View Cancelled"}
+
+            </Toggle>
+            
               <h1 className='font-bold text-lg mb-2'>Doctors</h1>
               <div className="relative mb-2">
                 <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -1536,14 +1553,6 @@ export default function Schedule() {
                 ))}
               </div>
 
-
-            <Toggle 
-            pressed={showCancelled} 
-            onPressedChange={handleCancelledToggle} 
-            className="w-full"
-            >
-              {showCancelled ? "Hide Cancelled" : "View Cancelled"}
-            </Toggle>
           </ScrollArea>
         </div>
           <button 
@@ -1641,6 +1650,7 @@ export default function Schedule() {
           sellables={sellables}  // Pass sellables to AppointmentPopup
           onCopyRecurringAppointments={onCopyRecurringAppointments}
           workingHours={workingHours}
+          handleaddpayment={handleaddpayment}
         />
       )}
       {/* add appointment */}

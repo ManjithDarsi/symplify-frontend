@@ -45,6 +45,7 @@ const NewPatient = () => {
   const { toast } = useToast();
   const { authenticatedFetch } = useAuth();
   const [therapists, setTherapists] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Track submission state
 
   const form = useForm({
     resolver: zodResolver(patientSchema),
@@ -85,6 +86,7 @@ const NewPatient = () => {
   };
 
   const onSubmit = async (values) => {
+    setIsSubmitting(true);
     const submitData = {
       ...values,
       mobile: values.mobile ?`${values.country_code}${values.mobile}` : null,
@@ -92,6 +94,7 @@ const NewPatient = () => {
       dob: values.dob || null,
       has_app_access: true,
       is_active: true,
+      is_patient_active: true,
       email_alternate: null,
       priority: 9,
     };
@@ -126,6 +129,9 @@ const NewPatient = () => {
         description: error.message || "Failed to add patient. Please try again.",
         variant: "destructive",
       });
+    }
+    finally {
+        setIsSubmitting(false); 
     }
   };
 
@@ -175,26 +181,25 @@ const NewPatient = () => {
                   )}
                 />
                 <FormField
-                  control={form.control}
-                  name="dob"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Date of birth (Optional)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          {...field} 
-                          type="date" 
-                          onBlur={(e) => {
-                            if (e.target.value) {
-                              const date = new Date(e.target.value);
-                              field.onChange(date.toISOString().split('T')[0]);
-                            }
-                          }}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+  control={form.control}
+  name="dob"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Date of birth (Optional)</FormLabel>
+      <FormControl>
+        <Input
+          {...field}
+          type="date"
+          onBlur={(e) => {
+            if (e.target.value) {
+              field.onChange(e.target.value); 
+            }
+          }}
+        />
+      </FormControl>
+    </FormItem>
+  )}
+/>
                 <FormField
                   control={form.control}
                   name="sex"
@@ -354,8 +359,8 @@ const NewPatient = () => {
                 />
               </div>
             </div>
-            <Button type="submit" className="w-full">
-              Add Patient
+            <Button type="submit" disabled={isSubmitting}>
+                   {isSubmitting ? "Adding Ptaient..." : "Add Patient"}
             </Button>
           </form>
         </Form>

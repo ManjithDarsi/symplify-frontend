@@ -1,5 +1,4 @@
-// AddClinic.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -49,15 +48,21 @@ const formSchema = z.object({
   email1: z.string().email({
     message: "Please enter a valid email address.",
   }),
-  type: z.enum(["ph", "cl", "ho"], {
+  type: z.enum(["ph","mu","ot","oh","se","st","ab","ay","da","py","cd"], {
     required_error: "Please select a clinic type.",
   }),
+  prefix_patient_id: z.string().min(1, {
+    message: "Prefix Patient ID is required.",
+  }).optional().or(z.literal('')), 
+  prefix_invoice: z.string().min(1, "Invoice prefix is required").optional().or(z.literal('')),
+
 });
 
 const AddClinic = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { authenticatedFetch } = useAuth();
+  const [loading, setLoading] = useState(false); // Loading state
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -71,14 +76,21 @@ const AddClinic = () => {
       phone1: "",
       email1: "",
       type: "ph",
+      prefix_invoice: '',
+      prefix_patient_id: '', 
     },
   });
 
   const onSubmit = async (values) => {
+
+    setLoading(true); // Start loading
     const submitData = {
       ...values,
-      type: 'ph'
+      address_line_2: values.address_line_2 ? values.address_line_2 : null,
+      prefix_invoice: values.prefix_invoice !== '' ? values.prefix_invoice : null,
+      prefix_patient_id: values.prefix_patient_id !== '' ? values.prefix_patient_id : null,
     };
+
     try {
       const response = await authenticatedFetch(`${import.meta.env.VITE_BASE_URL}/api/emp/clinic/`, {
         method: 'POST',
@@ -91,7 +103,7 @@ const AddClinic = () => {
       if (!response.ok) {
         throw new Error('Failed to add clinic');
       }
-
+      
       const data = await response.json();
       toast({
         title: "Success",
@@ -104,6 +116,8 @@ const AddClinic = () => {
         description: error.message || "Failed to add clinic. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false); // End loading
     }
   };
 
@@ -232,16 +246,71 @@ const AddClinic = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="ph">Pharmacy</SelectItem>
-                      <SelectItem value="cl">Clinic</SelectItem>
-                      <SelectItem value="ho">Hospital</SelectItem>
+                      <SelectItem value="ph">Physiotherapy</SelectItem>
+          <SelectItem value="mu">Multi</SelectItem>
+          <SelectItem value="ab">ABA therapy</SelectItem>
+          <SelectItem value="se">Special Education</SelectItem>
+          <SelectItem value="cd">Child devlopement</SelectItem>
+          <SelectItem value="ay">Ayurvedic Therapy</SelectItem>
+          <SelectItem value="da">Deaddiction Center</SelectItem>
+          <SelectItem value="py">Psychiology</SelectItem>
+          <SelectItem value="st">Speech Therapy</SelectItem>
+          <SelectItem value="ot">occupational therapy</SelectItem>
+          <SelectItem value="oh">Others</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="prefix_invoice"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Invoice Prefix</FormLabel>
+                  <div className="bg-gray-100 border border-gray-300 rounded p-4 mb-4">
+        <p className="text-sm text-gray-700">
+          Once the Invoice Prefix is set, each invoice generated in your clinic will have this prefix appended to it. 
+        </p>
+        <p className="text-sm text-gray-700">
+         Example: If your Invoice Prefix is "INV", your invoices will be labeled as INV_0001, INV_0002, and so on.
+        </p>
+      </div>
+                  <FormControl>
+                    <Input {...field} value={field.value ?? ''} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+  control={form.control}
+  name="prefix_patient_id"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Prefix Patient ID</FormLabel>
+      <div className="bg-gray-100 border border-gray-300 rounded p-4 mb-4">
+        <p className="text-sm text-gray-700">
+          Once the Patient ID Prefix is set, each patient in your clinic will be assigned a unique serial number under this prefix. Please note, this prefix is permanent and cannot be modified after being set.
+        </p>
+        <p className="text-sm text-gray-700">
+          Example: If your Patient ID Prefix is "ABC", your patients will have IDs like ABC_0001, ABC_0002, and so on.
+        </p>
+      </div>
+      <FormControl>
+        <Input 
+          {...field} 
+        />
+      </FormControl>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Adding Clinic...' : 'Add Clinic'}
+            </Button>
             <Button type="submit">Add Clinic</Button>
+
           </form>
         </Form>
       </CardContent>

@@ -1,9 +1,8 @@
-// login.jsx
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -19,7 +18,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import logo from "../../assets/logo_ai 2.svg";
 import { LogIn } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext'; // Make sure this path is correct
+import { useAuth } from '../../contexts/AuthContext';
 
 const formSchema = z.object({
   email: z.string().email("Please enter a valid email address."),
@@ -29,7 +28,8 @@ const formSchema = z.object({
 
 const Login = () => {
   const [isVisible, setIsVisible] = useState(false);
-  const { login } = useAuth(); // Use the login function from AuthContext
+  const [isSubmitting, setIsSubmitting] = useState(false);  // Add loading state
+  const { login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -47,6 +47,7 @@ const Login = () => {
   });
 
   async function onSubmit(values) {
+    setIsSubmitting(true);  
     try {
       await login(values.email, values.password);
       toast({
@@ -61,6 +62,8 @@ const Login = () => {
         description: "Login failed. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);  // Reset loading state
     }
   }
 
@@ -111,16 +114,16 @@ const Login = () => {
                     </FormControl>
                     <div className="w-full leading-none flex justify-between">
                       <FormLabel>Keep me signed in</FormLabel>
-                        <p className="text-sm text-gray-600 ">
-                            <Link to="/forgotpassword" className="text-blue-600 hover:underline">Forgot Password? </Link>
-                        </p>
+                      <p className="text-sm text-gray-600 ">
+                        <Link to="/forgotpassword" className="text-blue-600 hover:underline">Forgot Password? </Link>
+                      </p>
                     </div>
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
                 <LogIn className='w-[1rem] mt-[0.5px] mr-2' />
-                Login
+                {isSubmitting ? 'Logging in...' : 'Login'} {/* Display loading text */}
               </Button>
             </form>
           </Form>

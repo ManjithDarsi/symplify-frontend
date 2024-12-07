@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { useToast } from "../ui/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { countryCodes } from '../../lib/countryCodes';
+import { useNavigate } from 'react-router-dom';
 
 const Profile = () => {
   const { user, authenticatedFetch } = useAuth();
@@ -52,7 +53,9 @@ const Profile = () => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
+  const handledit =()=>{
+    useNavigate(`/clinic/${clinic_id}/patient/${patient_id}/update`);
+  }
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -105,7 +108,6 @@ const Profile = () => {
               <p className="text-gray-500">{user.email}</p>
             </div>
           </div>
-          <form onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div>
                 <Label htmlFor="first_name">First Name</Label>
@@ -172,19 +174,10 @@ const Profile = () => {
                 </div>
               </div>
             </div>
-            {isEditing ? (
-              <div className="mt-6 space-x-2">
-                <Button type="submit">Save Changes</Button>
-                <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
-              </div>
-            ) : (
-              <Button type="button" onClick={() => setIsEditing(true)} className="mt-6">Edit Profile</Button>
-            )}
-          </form>
+            <Button type="button" onClick={handledit} className="mt-6">Edit Profile</Button>
         </CardContent>
       </Card>
     </div>
   );
 };
-
 export default Profile;

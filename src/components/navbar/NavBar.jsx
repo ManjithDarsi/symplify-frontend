@@ -1,6 +1,6 @@
 // components/Navbar.jsx
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link, useParams } from 'react-router-dom';
 import { Button } from "../ui/button";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
@@ -17,6 +17,8 @@ const Navbar = () => {
   const [clinicName, setClinicName] = useState('');
   const [employeeName, setEmployeeName] = useState('');
   const [patientName, setPatientName] = useState('');
+
+  const { clinic_Id } = useParams();
 
   useEffect(() => {
     generateBreadcrumbs();
@@ -104,14 +106,22 @@ const Navbar = () => {
     setBreadcrumbs(breadcrumbs);
   };
 
+ 
+  const isClinicHome = location.pathname === `/clinic` || location.pathname === `/clinic/${clinicId}`;
+
+  const isSchedulePage = location.pathname === `/clinic/${clinicId}/schedule`;
+  
+
+
   return (
     <Card className="flex flex-col p-4 bg-white shadow-md w-full mt-2">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center w-full">
         <div className="flex items-center space-x-2" onClick={() => navigate('/clinic')} style={{cursor: 'pointer'}}>
           <img src={logo} alt="Symplify Logo" className="h-8 w-8" />
           <span className="font-bold text-xl">Symplify</span>
         </div>
-        <div className="flex items-center mt-2 text-sm text-gray-500">
+
+        <div className="flex items-center mt-2 text-sm text-gray-500 mx-auto px-4">
           {breadcrumbs.map((breadcrumb, index) => (
             <React.Fragment key={breadcrumb.routeTo}>
               {index > 0 && <ChevronRight className="h-4 w-4 mx-1" />}
@@ -125,6 +135,20 @@ const Navbar = () => {
             </React.Fragment>
           ))}
         </div>
+        
+        {isClinicHome ? null : isSchedulePage ? (
+          <Button onClick={() => navigate(`/clinic/${clinicId}`)} className="ml-4">Home</Button>
+        ) : (
+          <Button onClick={() => navigate(`/clinic/${clinicId}/schedule`)} className="ml-4">View/Schedule Calendar</Button>
+        )}
+
+
+
+
+
+
+
+        <div className="ml-4">
         {pathName.endsWith('/clinic') ? (
             <Button onClick={logout}> Logout <LogOut className='w-4 h-4 ml-2' /> </Button>
           ) : (
@@ -147,7 +171,7 @@ const Navbar = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-
+         </div>
       </div>
     </Card>
   );
