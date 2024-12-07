@@ -31,6 +31,7 @@ import { CalendarIcon } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from '@/components/ui/progress';
 import ClockPicker from '@/components/ui/clock';
+import { avatarClasses } from '@mui/material';
 // import SearchDropdown from '@/components/ui/SearchDropdown';
 
 const locales = {
@@ -232,7 +233,10 @@ export default function Schedule() {
       if (!response.ok) throw new Error('Failed to fetch patients');
       const data = await response.json();
       const active= data.filter(p => p.is_patient_active);
+      console.log("manjith test");
       setPatients(active);
+
+      console.log(patients);
     } catch (error) {
       toast({
         title: "Error",
@@ -898,6 +902,11 @@ export default function Schedule() {
     setIsPreview(open); // Update the preview dialog state
   };
 
+  const handleEditAppointment=()=>{
+    setIsPreview(false);
+    setIsVisitDialogOpen(true);
+  };
+
   const handleDialogOpenChange = (open) => {
     setIsVisitDialogOpen(open);
     if (!open) {
@@ -1521,24 +1530,25 @@ export default function Schedule() {
               </button>
             )}
           </div>
-          <ScrollArea className="flex-grow overflow-y-auto pr-4">
-            <Toggle
-              pressed={!selectedDoctorId && !selectedPatientId}
-              onPressedChange={clearAllFilters}
-              className="mb-4 w-full"
-            >
-              {selectedDoctorId === "" && selectedPatientId === "" ? "Apply Filter" : "Clear All Filters" }
-            </Toggle>
-            <Toggle 
-              pressed={showCancelled} 
-              onPressedChange={handleCancelledToggle} 
-              className="w-full"
-            >
-                {showCancelled ? "Hide Cancelled" : "View Cancelled"}
+          <Toggle
+            pressed={!selectedDoctorId && !selectedPatientId}
+            onPressedChange={clearAllFilters}
+            className="mb-4 w-full p-4"  // Added padding class here
+          >
+            {selectedDoctorId === "" && selectedPatientId === "" ? "Apply Filter" : "Clear All Filters"}
+          </Toggle>
+          <Toggle
+            pressed={showCancelled}
+            onPressedChange={handleCancelledToggle}
+            className="w-full p-4"  // Added padding class here
+          >
+            {showCancelled ? "Hide Cancelled" : "View Cancelled"}
+          </Toggle>
 
-            </Toggle>
-            
-              <h1 className='font-bold text-lg mb-2'>Doctors</h1>
+
+          <ScrollArea className="flex-grow overflow-y-auto pr-4">
+          
+            <h1 className='font-bold text-lg mb-2'>Doctors</h1>
               <div className="relative mb-2">
                 <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
@@ -1548,6 +1558,7 @@ export default function Schedule() {
                   onChange={(e) => setDoctorSearch(e.target.value)}
                   className="pl-8"
                 />
+                
               </div>
               <div className="flex flex-col gap-2 mb-4">
                 {filteredTherapists.map(therapist => (
@@ -1711,7 +1722,7 @@ export default function Schedule() {
                 placeholder="Select Patient"
                 options={patients}
                 value={newVisit.patient}
-                onValueChange={(value) => setNewVisit({...newVisit, patient: value})}
+                onValueChange={(value)=>{setNewVisit({...newVisit,patient: value})}}
                 searchPlaceholder="Search patients..."
               />
 
@@ -1719,7 +1730,7 @@ export default function Schedule() {
                 placeholder="Select Therapist"
                 options={therapists}
                 value={newVisit.therapist}
-                onValueChange={(value) => setNewVisit({...newVisit, therapist: value})}
+                onValueChange={(value) => {setNewVisit({...newVisit, therapist: value})}}
                 searchPlaceholder="Search therapists..."
               />
               </>
@@ -1727,7 +1738,7 @@ export default function Schedule() {
 
             <Select 
               value={newVisit.sellable} 
-              onValueChange={(value) => setNewVisit({...newVisit, sellable: value})}
+              onValueChange={(value) =>{ setNewVisit({...newVisit, sellable: value})}}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Product / Service" />
@@ -1872,19 +1883,61 @@ export default function Schedule() {
 
       <Dialog open={isPreview} onOpenChange={handlePreviewDialog}>
         <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
-        <Label>Patient:</Label>
-        <Label>Therapist</Label>
-        <Label>Sellable</Label>
+          <DialogHeader>
+            <DialogTitle style={{ marginBottom: '1rem' }}> Appointment Preview </DialogTitle>
+          </DialogHeader>
+          <div>
+            <Label>Patient: </Label>
+            <span style={{ color: '#555' }}>
+            {patients.find((patient) => patient.id === newVisit.patient)?.first_name} {patients.find((patient) => patient.id === newVisit.patient)?.last_name}
+            </span>
+          </div>
+          <div>
+            <Label>Therapist: </Label>
+            <span style={{ color: '#555'}}>
+            {therapists.find((therapist) => therapist.id === newVisit.therapist)?.first_name} {therapists.find((therapist) => therapist.id === newVisit.therapist)?.last_name}
+            </span>
+          </div>
+          <div>
+            <Label>Sellable: </Label>
+            <span style={{ color: '#555' }}>
+            {sellables.find((sellable) => sellable.id === newVisit.sellable)?.name}
+            </span>
+          </div>
+        
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-        <Label>Starts On</Label>
-        <Label>Time</Label>
+          <div>
+            <Label>Starts On : </Label>
+            <span style={{ color: '#555' }}>{newVisit.date instanceof Date 
+              ? newVisit.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+              : 'Invalid Date'}
+            </span>
+          </div>
+          <div>
+            <Label>Time: </Label>
+            <span style={{ color: '#555' }}>{newVisit.time ? newVisit.time : 'Time not set'}</span>
+          </div>
         </div>
-        <Label>Weekdays</Label>
-        <Label>Ends On</Label>
-        <Label>OR</Label>
-        <Label>Duration</Label>
+        <div>
+          <Label>Weekdays: </Label>
+          <span style={{ color: '#555' }}>{newVisit.weekdays? newVisit.weekdays.join(', ') : 'N/A'}</span>
+        </div>
+        <div>
+          <Label>Ends On: </Label>
+          <span style={{ color: '#555' }}>{newVisit.endsOn ? format(new Date(newVisit.endsOn), 'dd/MM/yyyy') : 'Not set'}</span>
+        </div>
+        <div>
+          <Label>OR: </Label>
+          <span style={{ color: '#555' }}>{newVisit.session? newVisit.session : 'Not set'}</span>
+        </div>
+        
+        <div>
+        <Label>Duration: </Label>
+        <span style={{ color: '#555' }}>{newVisit.duration? newVisit.duration : newVisit.customDuration} mins </span>
+        </div>
+        
         <div className="flex justify-between items-center gap-4 w-full" style={{ width: '100%' }}>
-          <Button className="w-full">Edit Appointment</Button>
+          <Button className="w-full" onClick={handleEditAppointment}>Edit Appointment</Button>
           <Button onClick={isRescheduling ? submitReschedule : addVisit} className="w-full">
             {isRescheduling ? 'Confirm Reschedule Appointment' : 'Confirm Appointment'}
           </Button>
