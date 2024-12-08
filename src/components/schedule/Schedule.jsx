@@ -1964,7 +1964,7 @@ export default function Schedule() {
           <span style={{ color: '#555' }}>{newVisit.endsOn ? format(new Date(newVisit.endsOn), 'dd/MM/yyyy') : 'Not set'}</span>
         </div>
         <div>
-          <Label>No. of sessions: ta</Label>
+          <Label>No. of sessions: </Label>
           <span style={{ color: '#555' }}>
             {newVisit.date && newVisit.endsOn && newVisit.weekdays.length > 0 ? calculateTotalSessions(newVisit.date, newVisit.endsOn, newVisit.weekdays): 'Not set'}
           </span>
