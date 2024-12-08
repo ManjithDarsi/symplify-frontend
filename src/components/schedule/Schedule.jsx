@@ -211,6 +211,36 @@ export default function Schedule() {
     }
   };
 
+  function calculateTotalSessions(startDate, endDate, weekdays) {
+    if (!startDate || !endDate || weekdays.length === 0) {
+      return 0;
+    }
+  
+    const shortToFullWeekdays = {
+      Mon: 'monday',
+      Tue: 'tuesday',
+      Wed: 'wednesday',
+      Thu: 'thursday',
+      Fri: 'friday',
+      Sat: 'saturday',
+      Sun: 'sunday',
+    };
+  
+    const selectedWeekdays = weekdays.map(day => shortToFullWeekdays[day]);
+    let sessionCount = 0;
+  
+    for (let current = new Date(startDate); current <= new Date(endDate); current.setDate(current.getDate() + 1)) {
+      const dayName = current.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+      if (selectedWeekdays.includes(dayName)) {
+        sessionCount++;
+      }
+    }
+  
+    return sessionCount;
+  }
+  
+  
+
   const fetchTherapists = async () => {
     try {
       const response = await authenticatedFetch(`${import.meta.env.VITE_BASE_URL}/api/emp/clinic/${clinic_id}/employee/`);
@@ -233,8 +263,6 @@ export default function Schedule() {
       if (!response.ok) throw new Error('Failed to fetch patients');
       const data = await response.json();
       const active= data.filter(p => p.is_patient_active);
-      console.log("manjith test");
-      setPatients(active);
 
       console.log(patients);
     } catch (error) {
@@ -1438,6 +1466,9 @@ export default function Schedule() {
         : "Untitled";
       doctorName = getFirstName(event.doctorName);
     }
+
+    
+    
   
     return (
       <div style={{ height: '100%', width: '100%', position: 'relative' }}>
@@ -1828,6 +1859,17 @@ export default function Schedule() {
                       />
                     </div>
 
+                    <div >
+                      <Label>No. of Sessions:  </Label>
+                      <p>
+                        {newVisit.date && newVisit.endsOn && newVisit.weekdays.length > 0
+                          ? calculateTotalSessions(newVisit.date, newVisit.endsOn, newVisit.weekdays)
+                          : 'Not set'}
+                      </p>
+                    </div>
+
+
+
                     <div className="space-y-2">
                       <Label htmlFor="sessions">OR</Label>
                       <Input
@@ -1848,7 +1890,7 @@ export default function Schedule() {
               <Label>Duration</Label>
               <RadioGroup onValueChange={(value) => setNewVisit({...newVisit, duration: parseInt(value), customDuration: ''})}>
                 <div className="flex flex-wrap gap-2">
-                  {[30, 45, 60, 90].map((duration) => (
+                  {[30, 40, 45, 60, 90].map((duration) => (
                     <div key={duration} className="flex items-center space-x-2">
                       <RadioGroupItem value={duration.toString()} id={`duration-${duration}`} />
                       <Label htmlFor={`duration-${duration}`}>{duration} Mins</Label>
@@ -1925,6 +1967,12 @@ export default function Schedule() {
         <div>
           <Label>Ends On: </Label>
           <span style={{ color: '#555' }}>{newVisit.endsOn ? format(new Date(newVisit.endsOn), 'dd/MM/yyyy') : 'Not set'}</span>
+        </div>
+        <div>
+          <Label>No. of sessions:</Label>
+          <span style={{ color: '#555' }}>
+            {newVisit.date && newVisit.endsOn && newVisit.weekdays.length > 0 ? calculateTotalSessions(newVisit.date, newVisit.endsOn, newVisit.weekdays): 'Not set'}
+          </span>
         </div>
         <div>
           <Label>OR: </Label>
