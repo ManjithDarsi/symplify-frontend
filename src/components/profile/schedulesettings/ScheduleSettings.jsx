@@ -78,7 +78,7 @@ const ScheduleSettings = () => {
 
       toast({
         title: 'Success',
-        description: `Collision setting updated to ${value ? 'Active' : 'Inactive'}.`,
+        description: `Collision setting updated to ${value ? 'Enabled' : 'Disabled'}.`,
       });
     } catch (error) {
       toast({
@@ -132,8 +132,7 @@ const ScheduleSettings = () => {
               name="collision_allow"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Allow Collision</FormLabel>
-                  <br />
+                  <FormLabel>Collision Of Appointments </FormLabel>
                   <FormControl>
                     <Switch
                       checked={field.value}
@@ -142,7 +141,7 @@ const ScheduleSettings = () => {
                       }
                     />
                   </FormControl>
-                  <span className="ml-2">{field.value ? 'Active' : 'Inactive'}</span>
+                  <span className="ml-2"> {field.value ? 'Enabled' : 'Disabled'}</span>
                 </FormItem>
               )}
             />
