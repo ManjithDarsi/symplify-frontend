@@ -20,6 +20,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { PlusCircle, Search, EyeOff, Eye, X } from "lucide-react";
 import { Card } from '../ui/card';
 import { useToast } from "@/components/ui/use-toast";
+import {ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, ToastClose, ToastAction } from "@/components/ui/toast";
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { parseISO, addMinutes, addDays, addMonths } from 'date-fns';
@@ -30,6 +31,7 @@ import { CalendarIcon } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from '@/components/ui/progress';
 import ClockPicker from '@/components/ui/clock';
+import { avatarClasses } from '@mui/material';
 // import SearchDropdown from '@/components/ui/SearchDropdown';
 
 const locales = {
@@ -63,6 +65,7 @@ export default function Schedule() {
   });
   const [selectedDoctor, setSelectedDoctor] = useState('');
   const [isRescheduling, setIsRescheduling] = useState(false);
+  const [isPreview, setIsPreview] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState('');
   const [showCanceled, setShowCanceled] = useState(false);
   const [calendarStartTime, setCalendarStartTime] = useState(new Date(0, 0, 0, 9, 0));
@@ -207,6 +210,36 @@ export default function Schedule() {
       });
     }
   };
+
+  function calculateTotalSessions(startDate, endDate, weekdays) {
+    if (!startDate || !endDate || weekdays.length === 0) {
+      return 0;
+    }
+  
+    const shortToFullWeekdays = {
+      Mon: 'monday',
+      Tue: 'tuesday',
+      Wed: 'wednesday',
+      Thu: 'thursday',
+      Fri: 'friday',
+      Sat: 'saturday',
+      Sun: 'sunday',
+    };
+  
+    const selectedWeekdays = weekdays.map(day => shortToFullWeekdays[day]);
+    let sessionCount = 0;
+  
+    for (let current = new Date(startDate); current <= new Date(endDate); current.setDate(current.getDate() + 1)) {
+      const dayName = current.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+      if (selectedWeekdays.includes(dayName)) {
+        sessionCount++;
+      }
+    }
+  
+    return sessionCount;
+  }
+  
+  
 
   const fetchTherapists = async () => {
     try {
@@ -523,7 +556,7 @@ export default function Schedule() {
           attended: false,
         });
         setIsRescheduling(false);
-        setIsVisitDialogOpen(false);
+        setIsPreview(false);
         toast({
           title: "Success",
           description: "Appointment rescheduled successfully.",
@@ -788,8 +821,9 @@ export default function Schedule() {
       if (newVisit.frequency === 'weekly') {
         recurrenceRule = `RRULE:FREQ=WEEKLY;BYDAY=${formattedWeekdays}`;
         if (newVisit.endsOn) {
-          const endDate = parseISO(newVisit.endsOn);
-          // console.log(endDate)
+          let endDateis=addDays(newVisit.endsOn,2);
+          let endDate=endDateis.toISOString().split('T')[0];
+          endDate = parseISO(endDate);
           recurrenceRule += `;UNTIL=${format(endDate, "yyyyMMdd'T'HHmmss'Z'")}`;
         } else if (newVisit.sessions) {
           recurrenceRule += `;COUNT=${newVisit.sessions}`;
@@ -857,12 +891,31 @@ export default function Schedule() {
         customDuration: '',
         therapist: '',
       });
+      // toast({
+      //   title: "Success",
+      //   description: "Appointment booked successfully.",
+      //   variant: "default",
+      // });
+      setIsPreview(false);
       toast({
-        title: "Success",
-        description: "Appointment booked successfully.",
-        variant: "default",
+        title: "Appointment booked successfully!!",
+        description: "Want to extend your Appointment?",
+        action: (
+          <ToastAction altText="Add appointment" onClick={() => {
+            const now = new Date();
+            setNewVisit(prev => ({
+              ...prev,
+              patient: newVisit.patient,
+              therapist: newVisit.therapist,
+              sellable: newVisit.sellable,
+              date: now,
+              time: format(now, 'HH:mm'),
+            }));
+            handleDialogOpenChange(true);
+          }} >Add appointment</ToastAction>
+        ),
       });
-      setIsVisitDialogOpen(false);
+      
     } catch (error) {
       toast({
         title: "Error",
@@ -870,6 +923,15 @@ export default function Schedule() {
         variant: "destructive",
       });
     }
+  };
+
+  const handlePreviewDialog= (open) => {
+    setIsPreview(open); // Update the preview dialog state
+  };
+
+  const handleEditAppointment=()=>{
+    setIsPreview(false);
+    setIsVisitDialogOpen(true);
   };
 
   const handleDialogOpenChange = (open) => {
@@ -892,6 +954,11 @@ export default function Schedule() {
         therapistName: '',
       });
     }
+  };
+
+  const handlePreview = (open) => {
+    setIsPreview(open);
+    setIsVisitDialogOpen(false);
   };
 
   const handleDoctorFilterChange = (doctorId) => {
@@ -1490,22 +1557,23 @@ export default function Schedule() {
               </button>
             )}
           </div>
-          <ScrollArea className="flex-grow overflow-y-auto pr-4">
             <Toggle
               pressed={!selectedDoctorId && !selectedPatientId}
               onPressedChange={clearAllFilters}
-              className="mb-4 w-full"
+            className="mb-4 w-full p-4"  // Added padding class here
             >
-              {selectedDoctorId === "" && selectedPatientId === "" ? "Apply Filter" : "Clear All Filters" }
+            {selectedDoctorId === "" && selectedPatientId === "" ? "Apply Filter" : "Clear All Filters"}
             </Toggle>
             <Toggle 
               pressed={showCancelled} 
               onPressedChange={handleCancelledToggle} 
-              className="w-full"
+            className="w-full p-4"  // Added padding class here
             >
                 {showCancelled ? "Hide Cancelled" : "View Cancelled"}
-
             </Toggle>
+
+
+          <ScrollArea className="flex-grow overflow-y-auto pr-4">
             
               <h1 className='font-bold text-lg mb-2'>Doctors</h1>
               <div className="relative mb-2">
@@ -1680,7 +1748,7 @@ export default function Schedule() {
                 placeholder="Select Patient"
                 options={patients}
                 value={newVisit.patient}
-                onValueChange={(value) => setNewVisit({...newVisit, patient: value})}
+                onValueChange={(value)=>{setNewVisit({...newVisit,patient: value})}}
                 searchPlaceholder="Search patients..."
               />
 
@@ -1688,7 +1756,7 @@ export default function Schedule() {
                 placeholder="Select Therapist"
                 options={therapists}
                 value={newVisit.therapist}
-                onValueChange={(value) => setNewVisit({...newVisit, therapist: value})}
+                onValueChange={(value) => {setNewVisit({...newVisit, therapist: value})}}
                 searchPlaceholder="Search therapists..."
               />
               </>
@@ -1696,7 +1764,7 @@ export default function Schedule() {
 
             <Select 
               value={newVisit.sellable} 
-              onValueChange={(value) => setNewVisit({...newVisit, sellable: value})}
+              onValueChange={(value) =>{ setNewVisit({...newVisit, sellable: value})}}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Product / Service" />
@@ -1781,10 +1849,21 @@ export default function Schedule() {
                       <DatePicker
                         id="enddate"
                         selected={date}
-                        onChange={(date) => setNewVisit({...newVisit, endsOn: date ? date.toISOString().split('T')[0] : ''})}
+                        onChange={(date) => setNewVisit({...newVisit, endsOn: date ?  date : ''})}
                         dateFormat="dd/MM/yyyy"
                       />
                     </div>
+
+                    <div >
+                      <Label>No. of Sessions:  </Label>
+                      <p>
+                        {newVisit.date && newVisit.endsOn && newVisit.weekdays.length > 0
+                          ? calculateTotalSessions(newVisit.date, newVisit.endsOn, newVisit.weekdays)
+                          : 'Not set'}
+                      </p>
+                    </div>
+
+
 
                     <div className="space-y-2">
                       <Label htmlFor="sessions">OR</Label>
@@ -1806,7 +1885,7 @@ export default function Schedule() {
               <Label>Duration</Label>
               <RadioGroup onValueChange={(value) => setNewVisit({...newVisit, duration: parseInt(value), customDuration: ''})}>
                 <div className="flex flex-wrap gap-2">
-                  {[30, 45, 60, 90].map((duration) => (
+                  {[30, 40, 45, 60, 90].map((duration) => (
                     <div key={duration} className="flex items-center space-x-2">
                       <RadioGroupItem value={duration.toString()} id={`duration-${duration}`} />
                       <Label htmlFor={`duration-${duration}`}>{duration} Mins</Label>
@@ -1829,9 +1908,84 @@ export default function Schedule() {
               />
             )}
           </div>
-          <Button onClick={isRescheduling ? submitReschedule : addVisit} className="w-full">
-            {isRescheduling ? 'Reschedule Appointment' : 'Book Appointment'}
+          <Button onClick={handlePreview} className="w-full">
+            Add Appointment
           </Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* <Button onClick={isRescheduling ? submitReschedule : addVisit} className="w-full">
+            {isRescheduling ? 'Reschedule Appointment' : 'Book Appointment'}
+          </Button> */}
+
+      <Dialog open={isPreview} onOpenChange={handlePreviewDialog}>
+        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle style={{ marginBottom: '1rem' }}> Appointment Preview </DialogTitle>
+          </DialogHeader>
+          <div>
+            <Label>Patient: </Label>
+            <span style={{ color: '#555' }}>
+            {patients.find((patient) => patient.id === newVisit.patient)?.first_name} {patients.find((patient) => patient.id === newVisit.patient)?.last_name}
+            </span>
+          </div>
+          <div>
+            <Label>Therapist: </Label>
+            <span style={{ color: '#555'}}>
+            {therapists.find((therapist) => therapist.id === newVisit.therapist)?.first_name} {therapists.find((therapist) => therapist.id === newVisit.therapist)?.last_name}
+            </span>
+          </div>
+          <div>
+            <Label>Sellable: </Label>
+            <span style={{ color: '#555' }}>
+            {sellables.find((sellable) => sellable.id === newVisit.sellable)?.name}
+            </span>
+          </div>
+        
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+          <div>
+            <Label>Starts On : </Label>
+            <span style={{ color: '#555' }}>{newVisit.date instanceof Date 
+              ? newVisit.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+              : 'Invalid Date'}
+            </span>
+          </div>
+          <div>
+            <Label>Time: </Label>
+            <span style={{ color: '#555' }}>{newVisit.time ? newVisit.time : 'Time not set'}</span>
+          </div>
+        </div>
+        <div>
+          <Label>Weekdays: </Label>
+          <span style={{ color: '#555' }}>{newVisit.weekdays? newVisit.weekdays.join(', ') : 'N/A'}</span>
+        </div>
+        <div>
+          <Label>Ends On: </Label>
+          <span style={{ color: '#555' }}>{newVisit.endsOn ? format(new Date(newVisit.endsOn), 'dd/MM/yyyy') : 'Not set'}</span>
+        </div>
+        <div>
+          <Label>No. of sessions: ta</Label>
+          <span style={{ color: '#555' }}>
+            {newVisit.date && newVisit.endsOn && newVisit.weekdays.length > 0 ? calculateTotalSessions(newVisit.date, newVisit.endsOn, newVisit.weekdays): 'Not set'}
+          </span>
+        </div>
+        {newVisit.sessions &&
+        <div>
+          <Label>OR: </Label>
+          <span style={{ color: '#555' }}>{ newVisit.sessions }</span>
+        </div>}
+        
+        <div>
+        <Label>Duration: </Label>
+        <span style={{ color: '#555' }}>{newVisit.duration? newVisit.duration : newVisit.customDuration} mins </span>
+        </div>
+        
+        <div className="flex justify-between items-center gap-4 w-full" style={{ width: '100%' }}>
+          <Button className="w-full" onClick={handleEditAppointment}>Edit Appointment</Button>
+          <Button onClick={isRescheduling ? submitReschedule : addVisit} className="w-full">
+            {isRescheduling ? 'Confirm Reschedule Appointment' : 'Confirm Appointment'}
+          </Button>
+        </div>
         </DialogContent>
       </Dialog>
     </Card>

@@ -334,7 +334,7 @@ const EmployeeSettings = () => {
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                   <FormControl>
                     <Checkbox
-                      checked={isActive ? field.value : false} 
+                      checked={field.value} 
                       onCheckedChange={field.onChange}
                       disabled={!isEditing  || !isActive}
                     />
@@ -354,7 +354,7 @@ const EmployeeSettings = () => {
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                   <FormControl>
                     <Checkbox
-                        checked={isActive ? field.value : false} 
+                      checked={field.value} 
                       onCheckedChange={field.onChange}
                       disabled={!isEditing || !isActive}
                     />
