@@ -263,8 +263,7 @@ export default function Schedule() {
       if (!response.ok) throw new Error('Failed to fetch patients');
       const data = await response.json();
       const active= data.filter(p => p.is_patient_active);
-
-      console.log(patients);
+      setPatients(active);
     } catch (error) {
       toast({
         title: "Error",
@@ -479,7 +478,6 @@ export default function Schedule() {
     setIsRescheduling(true);
     setIsVisitDialogOpen(true);
   };
-
   
   // Then, create a separate function to handle the actual rescheduling
   const submitReschedule = async () => {
@@ -823,8 +821,9 @@ export default function Schedule() {
       if (newVisit.frequency === 'weekly') {
         recurrenceRule = `RRULE:FREQ=WEEKLY;BYDAY=${formattedWeekdays}`;
         if (newVisit.endsOn) {
-          const endDate = parseISO(newVisit.endsOn);
-          // console.log(endDate)
+          let endDateis=addDays(newVisit.endsOn,2);
+          let endDate=endDateis.toISOString().split('T')[0];
+          endDate = parseISO(endDate);
           recurrenceRule += `;UNTIL=${format(endDate, "yyyyMMdd'T'HHmmss'Z'")}`;
         } else if (newVisit.sessions) {
           recurrenceRule += `;COUNT=${newVisit.sessions}`;
@@ -1466,9 +1465,6 @@ export default function Schedule() {
         : "Untitled";
       doctorName = getFirstName(event.doctorName);
     }
-
-    
-    
   
     return (
       <div style={{ height: '100%', width: '100%', position: 'relative' }}>
@@ -1561,25 +1557,25 @@ export default function Schedule() {
               </button>
             )}
           </div>
-          <Toggle
-            pressed={!selectedDoctorId && !selectedPatientId}
-            onPressedChange={clearAllFilters}
+            <Toggle
+              pressed={!selectedDoctorId && !selectedPatientId}
+              onPressedChange={clearAllFilters}
             className="mb-4 w-full p-4"  // Added padding class here
-          >
+            >
             {selectedDoctorId === "" && selectedPatientId === "" ? "Apply Filter" : "Clear All Filters"}
-          </Toggle>
-          <Toggle
-            pressed={showCancelled}
-            onPressedChange={handleCancelledToggle}
+            </Toggle>
+            <Toggle 
+              pressed={showCancelled} 
+              onPressedChange={handleCancelledToggle} 
             className="w-full p-4"  // Added padding class here
-          >
-            {showCancelled ? "Hide Cancelled" : "View Cancelled"}
-          </Toggle>
+            >
+                {showCancelled ? "Hide Cancelled" : "View Cancelled"}
+            </Toggle>
 
 
           <ScrollArea className="flex-grow overflow-y-auto pr-4">
-          
-            <h1 className='font-bold text-lg mb-2'>Doctors</h1>
+            
+              <h1 className='font-bold text-lg mb-2'>Doctors</h1>
               <div className="relative mb-2">
                 <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
@@ -1589,7 +1585,6 @@ export default function Schedule() {
                   onChange={(e) => setDoctorSearch(e.target.value)}
                   className="pl-8"
                 />
-                
               </div>
               <div className="flex flex-col gap-2 mb-4">
                 {filteredTherapists.map(therapist => (
@@ -1854,7 +1849,7 @@ export default function Schedule() {
                       <DatePicker
                         id="enddate"
                         selected={date}
-                        onChange={(date) => setNewVisit({...newVisit, endsOn: date ? date.toISOString().split('T')[0] : ''})}
+                        onChange={(date) => setNewVisit({...newVisit, endsOn: date ?  date : ''})}
                         dateFormat="dd/MM/yyyy"
                       />
                     </div>
@@ -1969,15 +1964,16 @@ export default function Schedule() {
           <span style={{ color: '#555' }}>{newVisit.endsOn ? format(new Date(newVisit.endsOn), 'dd/MM/yyyy') : 'Not set'}</span>
         </div>
         <div>
-          <Label>No. of sessions:</Label>
+          <Label>No. of sessions: ta</Label>
           <span style={{ color: '#555' }}>
             {newVisit.date && newVisit.endsOn && newVisit.weekdays.length > 0 ? calculateTotalSessions(newVisit.date, newVisit.endsOn, newVisit.weekdays): 'Not set'}
           </span>
         </div>
+        {newVisit.sessions &&
         <div>
           <Label>OR: </Label>
-          <span style={{ color: '#555' }}>{newVisit.session? newVisit.session : 'Not set'}</span>
-        </div>
+          <span style={{ color: '#555' }}>{ newVisit.sessions }</span>
+        </div>}
         
         <div>
         <Label>Duration: </Label>
