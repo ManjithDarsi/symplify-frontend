@@ -216,6 +216,7 @@ export default function Schedule() {
       return 0;
     }
   
+    // Map short weekday names to full weekday names
     const shortToFullWeekdays = {
       Mon: 'monday',
       Tue: 'tuesday',
@@ -229,7 +230,14 @@ export default function Schedule() {
     const selectedWeekdays = weekdays.map(day => shortToFullWeekdays[day]);
     let sessionCount = 0;
   
-    for (let current = new Date(startDate); current <= new Date(endDate); current.setDate(current.getDate() + 1)) {
+    // Parse startDate and endDate as Date objects
+    const startDateParsed = new Date(startDate);
+    const endDateParsed = new Date(endDate);
+  
+    // Ensure the entire endDate is included
+    endDateParsed.setHours(23, 59, 59);
+  
+    for (let current = new Date(startDateParsed); current <= endDateParsed; current.setDate(current.getDate() + 1)) {
       const dayName = current.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
       if (selectedWeekdays.includes(dayName)) {
         sessionCount++;
@@ -238,6 +246,8 @@ export default function Schedule() {
   
     return sessionCount;
   }
+  
+  
   
   
 
@@ -1745,7 +1755,7 @@ export default function Schedule() {
             ) : (
               <>
               <SearchableSelect
-                placeholder="Select Patient"
+                placeholder="Select Patient "
                 options={patients}
                 value={newVisit.patient}
                 onValueChange={(value)=>{setNewVisit({...newVisit,patient: value})}}
@@ -1961,7 +1971,7 @@ export default function Schedule() {
         </div>
         <div>
           <Label>Ends On: </Label>
-          <span style={{ color: '#555' }}>{newVisit.endsOn ? format(new Date(newVisit.endsOn), 'dd/MM/yyyy') : 'Not set'}</span>
+          <span style={{ color: '#555' }}>{newVisit.endsOn ? format(new Date(newVisit.endsOn), 'MMMM dd yyyy') : 'Not set'}</span>
         </div>
         <div>
           <Label>No. of sessions: </Label>
